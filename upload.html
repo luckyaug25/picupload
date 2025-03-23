@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
+        h1 { margin: 20px; }
+        a { display: block; margin: 20px; text-decoration: none; color: #007BFF; font-size: 18px; }
+
+        .upload-box {
+            width: 80%; max-width: 400px;
+            padding: 40px;
+            border: 2px dashed #007BFF;
+            margin: 30px auto;
+            text-align: center;
+            cursor: pointer;
+            color: #007BFF;
+            transition: background 0.3s;
+        }
+        .upload-box:hover { background: #f0f8ff; }
+
+        .input-url {
+            width: 80%; max-width: 400px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+        }
+        
+        .alert {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            padding: 15px;
+            color: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .success { background: #28a745; }
+        .error { background: #dc3545; }
+
+        .icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload Image</h1>
+    <a href="index.html">Go to Home</a>
+
+    <div class="upload-box" id="dropArea">
+        Drag & Drop Image Here<br>or<br>Paste Image URL Below
+    </div>
+
+    <input type="text" class="input-url" id="imageUrl" placeholder="Paste Image URL and Press Enter">
+    
+    <div id="alertBox" class="alert">
+        <span class="icon"></span>
+        <span id="alertMessage"></span>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById("dropArea");
+        const imageUrlInput = document.getElementById("imageUrl");
+        const alertBox = document.getElementById("alertBox");
+        const alertMessage = document.getElementById("alertMessage");
+        const alertIcon = document.querySelector(".icon");
+
+        function showAlert(message, type) {
+            alertMessage.textContent = message;
+            alertBox.className = `alert ${type}`;
+            alertIcon.innerHTML = type === "success" ? "✔️" : "❌";
+            alertBox.style.opacity = "1";
+            alertBox.style.transform = "translateY(0)";
+
+            setTimeout(() => {
+                alertBox.style.opacity = "0";
+                alertBox.style.transform = "translateY(20px)";
+            }, 3000);
+        }
+
+        function saveImage(imageSrc) {
+            if (!imageSrc) {
+                showAlert("Invalid Image URL!", "error");
+                return;
+            }
+
+            let images = JSON.parse(localStorage.getItem("images")) || [];
+            images.push(imageSrc);
+            localStorage.setItem("images", JSON.stringify(images));
+
+            showAlert("Image Uploaded Successfully!", "success");
+        }
+
+        // Handle Drag & Drop Upload
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            dropArea.style.background = "#e0f3ff";
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.style.background = "#fff";
+        });
+
+        dropArea.addEventListener("drop", (event) => {
+            event.preventDefault();
+            dropArea.style.background = "#fff";
+
+            let file = event.dataTransfer.files[0];
+            if (file && file.type.startsWith("image/")) {
+                let reader = new FileReader();
+                reader.onload = (e) => saveImage(e.target.result);
+                reader.readAsDataURL(file);
+            } else {
+                showAlert("Only images are allowed!", "error");
+            }
+        });
+
+        // Handle URL Upload
+        imageUrlInput.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                saveImage(imageUrlInput.value.trim());
+                imageUrlInput.value = "";
+            }
+        });
+
+    </script>
+
+</body>
+</html>
